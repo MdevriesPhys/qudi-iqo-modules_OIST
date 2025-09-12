@@ -10,15 +10,6 @@ from qudi.core.configoption import ConfigOption
 from qudi.interface.finite_sampling_input_interface import FiniteSamplingInputInterface, FiniteSamplingInputConstraints
 from qudi.util.enums import SamplingOutputMode
 
-class LockInSR830(FiniteSamplingInputInterface):
-    _visa_address = ConfigOption('visa_address', missing='error')
-    _comm_timeout = ConfigOption('comm_timeout', default=10, missing='warn')
-    _visa_baud_rate = ConfigOption('visa_baud_rate', default=None)
-    _rising_edge_trigger = ConfigOption('rising_edge_trigger', default=True, missing='info')
-    _config_freq_min = ConfigOption('frequency_min', default=None)
-    _config_freq_max = ConfigOption('frequency_max', default=None)
-    _config_power_min = ConfigOption('power_min', default=None)
-    _config_power_max = ConfigOption('power_max', default=None)
 
 # -*- coding: utf-8 -*-
 """
@@ -29,9 +20,9 @@ Implements the FiniteSamplingInputInterface.
 Example config:
 
 lockin_sr830:
-    module.Class: 'lockin.lockin_sr830.SR830'
+    module.Class: 'lock_in.lock_in_SR830.SR830'
     options:
-        visa_address: 'GPIB0::8::INSTR'
+        visa_address: 'GPIB0::1::INSTR'
         comm_timeout: 5000  # ms
 """
 
@@ -84,12 +75,12 @@ class SR830(FiniteSamplingInputInterface):
             frame_size_limits=(1, 16383),       # SR830 internal buffer depth
             sample_rate_limits=(0.0625, 512.0)  # SR830 time constant dependent
         )
-
         # Clear buffer
         self._device.write('REST')
         self._device.write('ERES')
 
     def on_deactivate(self):
+        self.log.info(f'deactivating lockin')
         self._device.close()
         self._rm.close()
         self._device = None
@@ -117,6 +108,9 @@ class SR830(FiniteSamplingInputInterface):
     def samples_in_buffer(self):
         # Query number of points in buffer
         with self._thread_lock:
+            self.log.info(f"I am about to call SPTS?")
+            resp=self._device.query('SPTS?')
+            self.log.info({resp})
             return int(self._device.query('SPTS?'))
 
     # ----------- Configuration methods -----------
@@ -152,6 +146,7 @@ class SR830(FiniteSamplingInputInterface):
         with self._thread_lock:
             self._device.write('REST')  # Reset data buffer
             self._device.write(f'TSTR {self._frame_size}')  # Trigger scan
+            
 
     def stop_buffered_acquisition(self):
         with self._thread_lock:
@@ -174,10 +169,12 @@ class SR830(FiniteSamplingInputInterface):
             return data
 
     def acquire_frame(self, frame_size=None):
+        self.log.info(f'acquire frame called')
         if frame_size is None:
             frame_size = self._frame_size
         self.start_buffered_acquisition()
         # Wait until enough samples are acquired
         while self.samples_in_buffer < frame_size:
             time.sleep(frame_size / self._sample_rate * 0.1)
+        self.log.info(f'got to end of frame call')
         return self.get_buffered_samples(frame_size)
