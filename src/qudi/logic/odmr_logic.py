@@ -628,7 +628,6 @@ class OdmrLogic(LogicBase):
                 self.log.exception('Error while trying to read ODMR scan data from hardware:')
                 self.stop_odmr_scan()
                 return
-
             # Add new count data to raw_data array and append if array is too small
             current_line_buffer_size = next(iter(self._raw_data.values()))[0].shape[1]
             if self._elapsed_sweeps == current_line_buffer_size:
@@ -645,7 +644,6 @@ class OdmrLogic(LogicBase):
                     'size is {1:d}.'.format(current_line_buffer_size,
                                             current_line_buffer_size + self.__estimated_lines)
                 )
-
             # shift data in the array "up" and add new data at the "bottom"
             for ch, range_list in self._raw_data.items():
                 start = 0
@@ -654,10 +652,10 @@ class OdmrLogic(LogicBase):
                     tmp = new_counts[ch][start:start + range_params[-1]]
                     range_list[range_index][0:len(tmp), 0] = tmp
                     start += range_params[-1]
-
+                
             # Calculate averaged signal
             self._calculate_signal_data()
-
+            
             # Update elapsed time/sweeps
             self._elapsed_sweeps += 1
             self._elapsed_time = time.time() - self._start_time
@@ -669,6 +667,7 @@ class OdmrLogic(LogicBase):
                 self.stop_odmr_scan()
             else:
                 self._sigNextLine.emit()
+            
             return
 
     @QtCore.Slot(str, str, int)

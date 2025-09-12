@@ -56,7 +56,7 @@ class SR830(FiniteSamplingInputInterface):
         self._active_channels = frozenset(['X'])
         self._sample_rate = 512.0   # Hz, SR830 max
         self._frame_size = 1024
-        self._buffer = {ch: np.array([]) for ch in ['X', 'Y', 'R', 'Theta']}
+        self._buffer = {ch: np.array([]) for ch in ['X', 'Y']}
 
     def on_activate(self):
         self._rm = visa.ResourceManager()
@@ -69,7 +69,7 @@ class SR830(FiniteSamplingInputInterface):
         self.log.info(f'Connected to SR830: {model.strip()}')
 
         # Setup constraints
-        channel_units = {'X': 'V', 'Y': 'V', 'R': 'V', 'Theta': 'deg'}
+        channel_units = {'X': 'V', 'Y': 'V'}
         self._constraints = FiniteSamplingInputConstraints(
             channel_units=channel_units,
             frame_size_limits=(1, 16383),       # SR830 internal buffer depth
@@ -143,13 +143,20 @@ class SR830(FiniteSamplingInputInterface):
     # ----------- Acquisition methods -----------
 
     def start_buffered_acquisition(self):
+        self.log.info(f'started buffered aq')
         with self._thread_lock:
+            self.log.info(f'REST')
             self._device.write('REST')  # Reset data buffer
-            self._device.write(f'TSTR {self._frame_size}')  # Trigger scan
+            self.log.info(f'STRT')
+            self._device.write(f'STRT')
+            # self.log.info(f'TSTR {self._frame_size}')
+            # self._device.write(f'TSTR {self._frame_size}')  # Trigger scan
+            # self._device.write(f'TSTR 0')
             
 
     def stop_buffered_acquisition(self):
         with self._thread_lock:
+            self.log.info(f'PAUS')
             self._device.write('PAUS')
 
     def get_buffered_samples(self, number_of_samples=None):
@@ -160,12 +167,13 @@ class SR830(FiniteSamplingInputInterface):
                 return {ch: np.array([]) for ch in self._active_channels}
 
             data = {}
-            for ch in self._active_channels:
-                code = {'X': 1, 'Y': 2, 'R': 3, 'Theta': 4}[ch]
-                values = self._device.query_binary_values(
-                    f'TRAC? {code}, {number_of_samples}', datatype='f', is_big_endian=False
-                )
-                data[ch] = np.array(values)
+            for ch in ('X', 'Y'):#change input channels above as well
+                code = {'X': 1, 'Y': 2}[ch]
+                values = self._device.query(
+                    f'TRCA? {code}, 0,{number_of_samples}')
+                values=np.fromstring(values,sep=",")
+                data = data|{ch: values[:-1]}
+
             return data
 
     def acquire_frame(self, frame_size=None):
@@ -175,6 +183,8 @@ class SR830(FiniteSamplingInputInterface):
         self.start_buffered_acquisition()
         # Wait until enough samples are acquired
         while self.samples_in_buffer < frame_size:
+            self.log.info(f'loop')
             time.sleep(frame_size / self._sample_rate * 0.1)
         self.log.info(f'got to end of frame call')
+        self.stop_buffered_acquisition()
         return self.get_buffered_samples(frame_size)
