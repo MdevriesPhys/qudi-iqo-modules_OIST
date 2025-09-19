@@ -108,9 +108,7 @@ class SR830(FiniteSamplingInputInterface):
     def samples_in_buffer(self):
         # Query number of points in buffer
         with self._thread_lock:
-            self.log.info(f"I am about to call SPTS?")
             resp=self._device.query('SPTS?')
-            self.log.info({resp})
             return int(self._device.query('SPTS?'))
 
     # ----------- Configuration methods -----------
@@ -143,11 +141,8 @@ class SR830(FiniteSamplingInputInterface):
     # ----------- Acquisition methods -----------
 
     def start_buffered_acquisition(self):
-        self.log.info(f'started buffered aq')
         with self._thread_lock:
-            self.log.info(f'REST')
             self._device.write('REST')  # Reset data buffer
-            self.log.info(f'STRT')
             self._device.write(f'STRT')
             # self.log.info(f'TSTR {self._frame_size}')
             # self._device.write(f'TSTR {self._frame_size}')  # Trigger scan
@@ -156,7 +151,6 @@ class SR830(FiniteSamplingInputInterface):
 
     def stop_buffered_acquisition(self):
         with self._thread_lock:
-            self.log.info(f'PAUS')
             self._device.write('PAUS')
 
     def get_buffered_samples(self, number_of_samples=None):
@@ -177,14 +171,11 @@ class SR830(FiniteSamplingInputInterface):
             return data
 
     def acquire_frame(self, frame_size=None):
-        self.log.info(f'acquire frame called')
         if frame_size is None:
             frame_size = self._frame_size
         self.start_buffered_acquisition()
         # Wait until enough samples are acquired
         while self.samples_in_buffer < frame_size:
-            self.log.info(f'loop')
             time.sleep(frame_size / self._sample_rate * 0.1)
-        self.log.info(f'got to end of frame call')
         self.stop_buffered_acquisition()
         return self.get_buffered_samples(frame_size)
