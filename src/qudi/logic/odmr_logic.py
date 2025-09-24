@@ -311,7 +311,7 @@ class OdmrLogic(LogicBase):
 
     @QtCore.Slot(object)
     def set_scan_power(self, scan_power):
-        """ Sets the runtime for ODMR measurement
+        """ Sets the scan power for ODMR measurement
 
         @param float scan_power: desired power for scans in dBm
         """
