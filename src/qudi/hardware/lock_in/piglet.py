@@ -164,11 +164,13 @@ class SR830(FiniteSamplingInputInterface, FastCounterInterface):
 
     # ----------- FiniteSamplingInputInterface acquisition -----------
     def start_buffered_acquisition(self):
+        self.log.info("start buff") 
         with self._thread_lock:
             self._device.write('REST')  # Reset data buffer
             self._device.write('STRT')  # Start acquisition
 
     def stop_buffered_acquisition(self):
+        self.log.info("stop buff")
         with self._thread_lock:
             self._device.write('PAUS')
 
@@ -188,6 +190,7 @@ class SR830(FiniteSamplingInputInterface, FastCounterInterface):
                     data[ch] = values[~np.isnan(values)]
                 else:
                     data[ch] = np.array([])
+            self.log.info(f"{data}")
             return {ch: data[ch] for ch in self._active_channels if ch in data}
 
     def acquire_frame(self, frame_size=None):
@@ -234,10 +237,12 @@ class SR830(FiniteSamplingInputInterface, FastCounterInterface):
         return constraints
 
     def configure(self, bin_width_s, record_length_s, number_of_gates=0):
+        self.log.info(f"BIN {bin_width_s}")
+        self.log.info(f"RECORD {record_length_s}")
         self._number_of_gates = 0
         desired_rate = 1.0 / bin_width_s if bin_width_s > 0 else self._sample_rate
         self.set_sample_rate(desired_rate)
-        record_samples = max(1, int(np.round(record_length_s * self._sample_rate)))
+        record_samples = max(1, int(np.round(record_length_s *100* self._sample_rate)))
         min_frame, max_frame = self._constraints.frame_size_limits
         record_samples = min(max(record_samples, min_frame), max_frame)
         self.set_frame_size(record_samples)
@@ -284,7 +289,6 @@ class SR830(FiniteSamplingInputInterface, FastCounterInterface):
 
     def get_data_trace(self):
         self.log.info("get data trace")
-        return self.get_buffered_samples
         if not self._configured:
             return np.array([], dtype='int64'), {'elapsed_sweeps': None, 'elapsed_time': None}
 
@@ -294,7 +298,7 @@ class SR830(FiniteSamplingInputInterface, FastCounterInterface):
             if time.time() - t0 > timeout_s:
                 break
             time.sleep(0.005)
-
+        self.log.info(f"{self._record_samples}")
         buf = self.get_buffered_samples(self._record_samples)
         if 'X' in buf and buf['X'].size > 0:
             voltages = buf['X']
@@ -307,7 +311,8 @@ class SR830(FiniteSamplingInputInterface, FastCounterInterface):
             voltages = np.pad(voltages, (0, self._record_samples - voltages.size), 'constant')
         elif voltages.size > self._record_samples:
             voltages = voltages[:self._record_samples]
-
+        # voltage=self._device.query(f'OUTP?1')
+        # self.log.info(f"{voltage}")
         pseudo_counts = np.round(voltages * self._scale).astype('int64')
         info_dict = {
             'elapsed_sweeps': None,

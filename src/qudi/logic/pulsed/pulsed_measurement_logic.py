@@ -70,8 +70,7 @@ class PulsedMeasurementLogic(LogicBase):
     """
 
     # declare connectors
-    # _fastcounter = Connector(name='fastcounter', interface='FastCounterInterface')
-    _fastcounter = Connector(name='fastcounter', interface='FiniteSamplingInputInterface')
+    _fastcounter = Connector(name='fastcounter', interface='FastCounterInterface')
     _pulsegenerator = Connector(name='pulsegenerator', interface='PulserInterface')
     _microwave = Connector(name='microwave', interface='MicrowaveInterface', optional=True)
 

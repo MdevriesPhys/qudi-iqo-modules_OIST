@@ -125,6 +125,8 @@ class FastCounterDummy(FastCounterInterface):
                     gate_length_s: the actual set gate length in seconds
                     number_of_gates: the number of gated, which are accepted
         """
+        self.log.info(f"BIN {bin_width_s}")
+        self.log.info(f"RECORD {record_length_s}")
         self._binwidth = int(np.rint(bin_width_s * 1e9 * 950 / 1000))
         self._gate_length_bins = int(np.rint(record_length_s / bin_width_s))
         actual_binwidth = self._binwidth * 1000 / 950e9
@@ -200,6 +202,7 @@ class FastCounterDummy(FastCounterInterface):
         return width_in_seconds
 
     def get_data_trace(self):
+        self.log.info("get data trace")
         """ Polls the current timetrace data from the fast counter.
 
         Return value is a numpy array (dtype = int64).
@@ -221,6 +224,7 @@ class FastCounterDummy(FastCounterInterface):
         # include an artificial waiting time
         time.sleep(0.5)
         info_dict = {'elapsed_sweeps': None, 'elapsed_time': None}
+        self.log.info(f"{self._count_data}")
         return self._count_data, info_dict
 
     def get_frequency(self):
