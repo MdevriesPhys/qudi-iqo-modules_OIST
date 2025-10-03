@@ -40,7 +40,7 @@
          <item>
           <widget class="QLabel" name="hintLabel">
            <property name="text">
-            <string>Hint: add methods in Settings -&gt; Predefined Methods</string>
+            <string>Hint: Hello add methods in Settings -&gt; Predefinedfdssgh Methods</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignCenter</set>

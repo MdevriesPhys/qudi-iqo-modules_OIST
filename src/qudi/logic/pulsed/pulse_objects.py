@@ -1084,6 +1084,11 @@ class PredefinedGeneratorBase:
         return None if channel == '' else channel
 
     @property
+    def tref_channel(self):
+        channel=self.generation_parameters.get('tref_channel')
+        return None if channel == '' else channel
+
+    @property
     def gate_channel(self):
         channel = self.generation_parameters.get('gate_channel')
         return None if channel == '' else channel
@@ -1124,6 +1129,10 @@ class PredefinedGeneratorBase:
     @property
     def sample_rate(self):
         return self.pulse_generator_settings.get('sample_rate')
+    
+    @property
+    def tref_period(self):
+        return self.generation_parameters.get("tref_period")
 
     ################################################################################################
     #                                   Helper methods                                          ####

@@ -98,6 +98,8 @@ class SequenceGeneratorLogic(LogicBase):
                  'microwave_channel': 'a_ch1',
                  'microwave_frequency': 2.87e9,
                  'microwave_amplitude': 0.0,
+                 'tref_channel': '',
+                 'tref_period':1e-3,
                  'rabi_period': 100e-9,
                  'laser_length': 3e-6,
                  'laser_delay': 500e-9,
@@ -649,6 +651,7 @@ class SequenceGeneratorLogic(LogicBase):
 
     @property
     def generation_parameters(self):
+        self.log.error("this is called")
         return self._generation_parameters.copy()
 
     @generation_parameters.setter
@@ -724,6 +727,10 @@ class SequenceGeneratorLogic(LogicBase):
                                    ''.format(settings_dict['microwave_channel'],
                                              self.__activation_config[1]))
                     del settings_dict['microwave_channel']
+            if settings_dict.get('tref_channel'):
+                if settings_dict['tref_channel'] not in self.__activation_config[1]:
+                    self.log.error("shit broken")
+                    del settings_dict["tref_channel"]
 
             # update settings dict
             self._generation_parameters.update(settings_dict)

@@ -1233,6 +1233,7 @@ class PulsedMeasurementGui(GuiBase):
         row_count = 1
         combo_count = 0
         for param, value in self.pulsedmasterlogic().generation_parameters.items():
+            self.log.info(f'{param}')
             # Do not create widget for laser_channel since this widget is already part of the pulse
             # editor tab.
             if param in ('laser_channel', 'sync_channel', 'gate_channel'):

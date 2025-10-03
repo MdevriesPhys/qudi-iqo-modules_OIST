@@ -894,6 +894,74 @@ class BasicPredefinedGenerator(PredefinedGeneratorBase):
         # append ensemble to created ensembles
         created_ensembles.append(block_ensemble)
         return created_blocks, created_ensembles, created_sequences
+    
+    def generate_t1_lockin(self, name='T1_lockin', tau_start=1.0e-6, tau_step=1.0e-6, num_of_points=50):
+        """Generates a T1 pulse block ensemble where the free evolution time tau is varied linearly.
+
+        Parameters
+        ----------
+        name : str
+            Name of the PulseBlockEnsemble to be generated.
+        tau_start: float
+            Start tau in seconds.
+        tau_step: float
+            Tau step in seconds.
+        num_of_points: int
+            Number of tau points.
+        alternating: bool
+            If True, the final pi/2 pulse is alternated with either a -pi/2 pulse or 3pi/2 pulse depending on whether an
+            analog or digital channel is used for microwave generation respectively. Default is False.
+
+        Returns
+        -------
+        created_blocks : list
+            List of PulseBlock objects created.
+        created_ensembles : list
+            List of PulseBlockEnsemble objects created.
+        created_sequences : list
+            List of PulseSequence objects created.
+        """
+        created_blocks = list()
+        created_ensembles = list()
+        created_sequences = list()
+
+        # get tau array for measurement ticks
+        tau_array = tau_start + np.arange(num_of_points) * tau_step
+
+        # create the elements
+        waiting_element = self._get_idle_element(length=self.wait_time,
+                                                 increment=0)
+        laser_element = self._get_laser_gate_element(length=self.laser_length,
+                                                     increment=0)
+        delay_element = self._get_delay_gate_element()
+        tref_element = self._get_tref_element()
+
+        tau_element = self._get_idle_element(length=tau_start, increment=tau_step)
+        t1_block = PulseBlock(name=name)
+        t1_block.append(tref_element)
+        t1_block.append(tau_element)
+        t1_block.append(laser_element)
+        t1_block.append(delay_element)
+        t1_block.append(waiting_element)
+
+        created_blocks.append(t1_block)
+
+        # Create block ensemble
+        block_ensemble = PulseBlockEnsemble(name=name, rotating_frame=False)
+        block_ensemble.append((t1_block.name, num_of_points - 1))
+
+        # add metadata to invoke settings later on
+        number_of_lasers = num_of_points
+        block_ensemble.measurement_information['laser_ignore_list'] = list()
+        block_ensemble.measurement_information['controlled_variable'] = tau_array
+        block_ensemble.measurement_information['units'] = ('s', '')
+        block_ensemble.measurement_information['labels'] = ('Tau<sub>pulse spacing</sub>', 'Signal')
+        block_ensemble.measurement_information['number_of_lasers'] = number_of_lasers
+        block_ensemble.measurement_information['counting_length'] = self._get_ensemble_count_length(
+            ensemble=block_ensemble, created_blocks=created_blocks)
+        # append ensemble to created ensembles
+        created_ensembles.append(block_ensemble)
+        return created_blocks, created_ensembles, created_sequences
 
     def generate_t1_exponential(self, name='T1_exp', tau_start=1.0e-6, tau_end=1.0e-6, num_of_points=50,
                                 alternating=False):
