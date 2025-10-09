@@ -651,7 +651,6 @@ class SequenceGeneratorLogic(LogicBase):
 
     @property
     def generation_parameters(self):
-        self.log.error("this is called")
         return self._generation_parameters.copy()
 
     @generation_parameters.setter
@@ -729,7 +728,7 @@ class SequenceGeneratorLogic(LogicBase):
                     del settings_dict['microwave_channel']
             if settings_dict.get('tref_channel'):
                 if settings_dict['tref_channel'] not in self.__activation_config[1]:
-                    self.log.error("shit broken")
+                    self.log.error("Unable to set tref channel")
                     del settings_dict["tref_channel"]
 
             # update settings dict

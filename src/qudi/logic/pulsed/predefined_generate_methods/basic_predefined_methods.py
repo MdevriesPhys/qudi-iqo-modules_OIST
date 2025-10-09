@@ -891,8 +891,10 @@ class BasicPredefinedGenerator(PredefinedGeneratorBase):
         block_ensemble.measurement_information['number_of_lasers'] = number_of_lasers
         block_ensemble.measurement_information['counting_length'] = self._get_ensemble_count_length(
             ensemble=block_ensemble, created_blocks=created_blocks)
+        self.log.info(f"{block_ensemble.measurement_information['controlled_variable']}")
         # append ensemble to created ensembles
         created_ensembles.append(block_ensemble)
+        
         return created_blocks, created_ensembles, created_sequences
     
     def generate_t1_lockin(self, name='T1_lockin', tau_start=1.0e-6, tau_step=1.0e-6, num_of_points=50):

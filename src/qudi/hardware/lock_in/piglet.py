@@ -164,13 +164,13 @@ class SR830(FiniteSamplingInputInterface, FastCounterInterface):
 
     # ----------- FiniteSamplingInputInterface acquisition -----------
     def start_buffered_acquisition(self):
-        self.log.info("start buff") 
+        # self.log.info("start buff") 
         with self._thread_lock:
             self._device.write('REST')  # Reset data buffer
             self._device.write('STRT')  # Start acquisition
 
     def stop_buffered_acquisition(self):
-        self.log.info("stop buff")
+        # self.log.info("stop buff")
         with self._thread_lock:
             self._device.write('PAUS')
 
@@ -237,12 +237,13 @@ class SR830(FiniteSamplingInputInterface, FastCounterInterface):
         return constraints
 
     def configure(self, bin_width_s, record_length_s, number_of_gates=0):
-        self.log.info(f"BIN {bin_width_s}")
-        self.log.info(f"RECORD {record_length_s}")
+        # self.log.info(f"BIN {bin_width_s}")
+        # self.log.info(f"RECORD {record_length_s}")
         self._number_of_gates = 0
         desired_rate = 1.0 / bin_width_s if bin_width_s > 0 else self._sample_rate
         self.set_sample_rate(desired_rate)
-        record_samples = max(1, int(np.round(record_length_s *100* self._sample_rate)))
+        record_samples = max(1, int(np.round(record_length_s * self._sample_rate)))#this is here
+        # self.log.info(f"{record_samples}")
         min_frame, max_frame = self._constraints.frame_size_limits
         record_samples = min(max(record_samples, min_frame), max_frame)
         self.set_frame_size(record_samples)
