@@ -429,8 +429,8 @@ class SequenceGeneratorLogic(LogicBase):
                             changed_settings[name] = new_channel
 
             if 'sample_rate' in settings_dict:
-                self.__sample_rate = self.pulsegenerator().set_sample_rate(
-                    float(settings_dict['sample_rate']))
+                self.__sample_rate = self.pulsegenerator().set_sample_rate(float(settings_dict['sample_rate']))
+                    
 
             if 'analog_levels' in settings_dict:
                 self.__analog_levels = self.pulsegenerator().set_analog_level(
@@ -605,7 +605,7 @@ class SequenceGeneratorLogic(LogicBase):
                 self.__activation_config = config_to_set
 
         # Read sample rate from device
-        self.__sample_rate = float(self.pulsegenerator().get_sample_rate())
+        self.__sample_rate = float(1e6)#float(self.pulsegenerator().get_sample_rate())
 
         # Read analog levels from device
         self.__analog_levels = self.pulsegenerator().get_analog_level()
@@ -1221,6 +1221,7 @@ class SequenceGeneratorLogic(LogicBase):
         info_dict = self.analyze_block_ensemble(ensemble=ensemble)
         ens_bins = info_dict['number_of_samples']
         ens_length = ens_bins / self.__sample_rate
+        self.log.info(f"get ensemble info {self.__sample_rate}")
         ens_lasers = min(len(info_dict['laser_rising_bins']), len(info_dict['laser_falling_bins']))
         return ens_length, ens_bins, ens_lasers
 
@@ -1241,7 +1242,7 @@ class SequenceGeneratorLogic(LogicBase):
         info_dict = self.analyze_sequence(sequence=sequence)
         length_bins = info_dict['number_of_samples']
         length_s = length_bins / self.__sample_rate if sequence.is_finite else np.inf
-
+        self.log.info(f"get sequence info {self.__sample_rate}")
         if len(laser_channel) > 0 and laser_channel[0] == 'd' and sequence.is_finite:
             number_of_lasers = len(info_dict['digital_rising_bins'][laser_channel])
         elif sequence.is_finite:
