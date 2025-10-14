@@ -605,7 +605,7 @@ class SequenceGeneratorLogic(LogicBase):
                 self.__activation_config = config_to_set
 
         # Read sample rate from device
-        self.__sample_rate = float(1e6)#float(self.pulsegenerator().get_sample_rate())
+        self.__sample_rate = float(self.pulsegenerator().get_sample_rate()) #hardcode rate
 
         # Read analog levels from device
         self.__analog_levels = self.pulsegenerator().get_analog_level()
@@ -1742,6 +1742,7 @@ class SequenceGeneratorLogic(LogicBase):
         # Make sure the length of the channel is a multiple of the step size.
         # This is done by appending an idle block
         granularity = self.pulse_generator_constraints.waveform_length.step
+        self.log.info(f"granularity = {granularity}")
         self.log.debug('length: {0}, mod {1}'.format(
             ensemble_info['number_of_samples'], ensemble_info['number_of_samples'] % granularity))
         if ensemble_info['number_of_samples'] % granularity != 0:

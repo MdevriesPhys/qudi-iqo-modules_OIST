@@ -218,6 +218,7 @@ class PulseBlasterESRPRO(SwitchInterface, PulserInterface):
         # minimal possible length of a single pulse/instruction in s:
         self.LEN_MIN = self.GRAN_MIN*self._min_instr_len
         self.SAMPLE_RATE = self._clock_freq # sample frequency in Hz.
+        self.SAMPLE_RATE = 1e6
 
         # For pulser interface:
         self._current_pb_waveform_name = ''

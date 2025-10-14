@@ -1296,6 +1296,7 @@ class PulsedMeasurementLogic(LogicBase):
         """
         # get raw data from fast counter
         fc_data = self._fastcounter().get_data_trace()
+        self.log.info(type(fc_data))
         if type(fc_data) == tuple and len(fc_data) == 2:  # if the hardware implement the new version of the interface
             fc_data, info_dict = fc_data
         else:

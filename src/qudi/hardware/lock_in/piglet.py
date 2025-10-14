@@ -228,8 +228,7 @@ class SR830(FiniteSamplingInputInterface, FastCounterInterface):
 
         self._sensitivity_volts = sens_table_volts[idx]
         self._scale = float(desired_counts_fullscale) / float(self._sensitivity_volts)
-        self.log.info(f"SR830 sensitivity = {self._sensitivity_volts} V full scale, "
-                      f"scale = {self._scale:.2e} counts/V")
+        # self.log.info(f"SR830 sensitivity = {self._sensitivity_volts} V full scale, "f"scale = {self._scale:.2e} counts/V")
 
     def get_constraints(self):
         constraints = dict()
@@ -243,7 +242,6 @@ class SR830(FiniteSamplingInputInterface, FastCounterInterface):
         desired_rate = 1.0 / bin_width_s if bin_width_s > 0 else self._sample_rate
         self.set_sample_rate(desired_rate)
         record_samples = max(1, int(np.round(record_length_s * self._sample_rate)))#this is here
-        # self.log.info(f"{record_samples}")
         min_frame, max_frame = self._constraints.frame_size_limits
         record_samples = min(max(record_samples, min_frame), max_frame)
         self.set_frame_size(record_samples)
