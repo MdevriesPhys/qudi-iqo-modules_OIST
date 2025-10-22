@@ -287,7 +287,6 @@ class SR830(FiniteSamplingInputInterface, FastCounterInterface):
         return False
 
     def get_data_trace(self):
-        self.log.info("get data trace")
         if not self._configured:
             return np.array([], dtype='int64'), {'elapsed_sweeps': None, 'elapsed_time': None}
 
@@ -297,7 +296,6 @@ class SR830(FiniteSamplingInputInterface, FastCounterInterface):
             if time.time() - t0 > timeout_s:
                 break
             time.sleep(0.005)
-        self.log.info(f"{self._record_samples}")
         buf = self.get_buffered_samples(self._record_samples)
         if 'X' in buf and buf['X'].size > 0:
             voltages = buf['X']
@@ -312,7 +310,8 @@ class SR830(FiniteSamplingInputInterface, FastCounterInterface):
             voltages = voltages[:self._record_samples]
         # voltage=self._device.query(f'OUTP?1')
         # self.log.info(f"{voltage}")
-        pseudo_counts = np.round(voltages * self._scale).astype('int64')
+
+        # pseudo_counts = np.round(voltages * self._scale).astype('int64')
         info_dict = {
             'elapsed_sweeps': None,
             'elapsed_time': None
@@ -320,7 +319,7 @@ class SR830(FiniteSamplingInputInterface, FastCounterInterface):
         if self._measure_start_time is not None:
             info_dict['elapsed_time'] = time.time() - self._measure_start_time
         self.log.info(f'voltage: {voltages}')
-        return pseudo_counts, info_dict
+        return voltages, info_dict
 
     def get_status(self):
         return self.statusvar

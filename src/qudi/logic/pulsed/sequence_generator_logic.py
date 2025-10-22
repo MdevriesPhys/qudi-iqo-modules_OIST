@@ -606,6 +606,7 @@ class SequenceGeneratorLogic(LogicBase):
 
         # Read sample rate from device
         self.__sample_rate = float(self.pulsegenerator().get_sample_rate()) #hardcode rate
+        self.log.info(f"{self.__sample_rate}")
 
         # Read analog levels from device
         self.__analog_levels = self.pulsegenerator().get_analog_level()
@@ -1221,7 +1222,6 @@ class SequenceGeneratorLogic(LogicBase):
         info_dict = self.analyze_block_ensemble(ensemble=ensemble)
         ens_bins = info_dict['number_of_samples']
         ens_length = ens_bins / self.__sample_rate
-        self.log.info(f"get ensemble info {self.__sample_rate}")
         ens_lasers = min(len(info_dict['laser_rising_bins']), len(info_dict['laser_falling_bins']))
         return ens_length, ens_bins, ens_lasers
 
@@ -1742,7 +1742,6 @@ class SequenceGeneratorLogic(LogicBase):
         # Make sure the length of the channel is a multiple of the step size.
         # This is done by appending an idle block
         granularity = self.pulse_generator_constraints.waveform_length.step
-        self.log.info(f"granularity = {granularity}")
         self.log.debug('length: {0}, mod {1}'.format(
             ensemble_info['number_of_samples'], ensemble_info['number_of_samples'] % granularity))
         if ensemble_info['number_of_samples'] % granularity != 0:
