@@ -8,42 +8,44 @@ Reads SR830 R per τ and plots live.
 import time
 import numpy as np
 from spinapi import *
-from hardware.sr830_control import sr830_connect, sr830_read_R
+from hardware.sr830_control import init_sr830, sr830_read_R
 from hardware.pulseblaster_control import pb_init_simple
+from PyQt6.QtCore import Qt, QObject, pyqtSignal, QThread
 
 # Channels (edit to match wiring)
-CH_LASER = (1 << 0)  # TTL to AOM / laser driver
-CH_REF   = (1 << 1)  # TTL to SR830 Ref In (HIGH = first half)
+CH_REF = (1 << 0)  # TTL to LIA
+CH_LASER   = (1 << 1)  # TTL to laser
 
 # Internal helpers
 def _program_three_pulse_sequence(tau_us: float, tref_ms: float, init_us: float, second_us: float, read_us: float):
-    half_us = (tref_ms * 1000.0) / 2.0
-    if init_us > half_us:
+    half_ns = (tref_ms * 1000000.0) / 2.0
+    init_ns=init_us*1000
+    second_ns=second_us*1000
+    read_ns=read_us*1000
+    tau_ns=tau_us*1000
+    if init_ns > half_ns:
         raise ValueError("INIT longer than first half")
-    if second_us + tau_us + read_us > half_us:
+    if second_ns + tau_ns + read_ns > half_ns:
         raise ValueError("SECOND + τ + READ must fit in second half")
 
-    high_base_us = half_us - init_us
-    low_after_read_us = half_us - (second_us + tau_us + read_us)
+    high_base_ns = half_ns - init_ns
+    low_after_read_ns = half_ns - (second_ns + tau_ns + read_ns)
 
     pb_start_programming(PULSE_PROGRAM)
-    # First half (REF HIGH): baseline, then INIT
-    pb_inst_pbonly(CH_REF, CONTINUE, 0, high_base_us)
-    pb_inst_pbonly(CH_REF | CH_LASER, CONTINUE, 0, init_us)
-    # Second half (REF LOW): SECOND, τ (dark), READ, remainder
-    pb_inst_pbonly(CH_LASER, CONTINUE, 0, second_us)
-    if tau_us > 0:
-        pb_inst_pbonly(0, CONTINUE, 0, tau_us)
-    pb_inst_pbonly(CH_LASER, CONTINUE, 0, read_us)
-    pb_inst_pbonly(0, BRANCH, 0, max(1.0, low_after_read_us))
+    pb_inst_pbonly(CH_REF|CH_LASER, CONTINUE, 0, init_ns)
+    pb_inst_pbonly(CH_REF,CONTINUE,0,high_base_ns)
+    pb_inst_pbonly(CH_LASER, CONTINUE, 0, second_ns)
+    if tau_ns > 0:
+        pb_inst_pbonly(0, CONTINUE, 0, tau_ns)
+    pb_inst_pbonly(CH_LASER, CONTINUE, 0, read_ns)
+    pb_inst_pbonly(0, BRANCH, 0, max(1.0, low_after_read_ns))
     pb_stop_programming()
 
-
-def run(ax, emit, tref_ms=4.0, init_us=10.0, second_us=8.0, read_us=5.0, max_tau_us=1000.0, points=15):
+def run(ax, emit, tref_ms=20, init_us=20.0, second_us=20.0, read_us=20.0, max_tau_us=4000.0, points=15):
     # Init hardware
     pb_init_simple()
-    rm, li, tau_LI_s = sr830_connect(oflt_index=6)
-    wait_s = max(0.02, 5.0 * tau_LI_s)
+    rm, li, tau_LI_s = init_sr830()
+    wait_s = max(30, 5.0 * tau_LI_s)
 
     taus_us = np.linspace(10.0, float(max_tau_us), int(points))
     taus_s = taus_us * 1e-6

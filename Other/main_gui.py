@@ -9,20 +9,20 @@ from PyQt6.QtCore import Qt, QObject, pyqtSignal, QThread
 from experiments.mpl_canvas import MplCanvas
 
 # Experiment runners (signature: run(ax, emit, **params))
-try:
-    from experiments.t1_experiment import run as run_t1
-    from experiments.odmr_experiment import run as run_odmr
-    from experiments.pulsed_odmr import run as run_podmr
-    from experiments.ramsey_experiment import run as run_ramsey
-    from experiments.t2_experiment import run as run_t2
+# try:
+from experiments.t1_experiment import run as run_t1
+from experiments.odmr_experiment import run as run_odmr
+from experiments.pulsed_odmr import run as run_podmr
+from experiments.ramsey_experiment import run as run_ramsey
+from experiments.t2_experiment import run as run_t2
 
-except ImportError:
-    # Dummy fallback functions for now so GUI can run without errors
-    def run_t1(): return "T1 placeholder (no experiment connected)"
-    def run_odmr(): return "ODMR placeholder (no experiment connected)"
-    def run_podmr(): return "Pulsed ODMR placeholder (no experiment connected)"
-    def run_ramsey(): return "no"
-    def run_t2(): return "no"
+# except ImportError:
+#     # Dummy fallback functions for now so GUI can run without errors
+#     def run_t1(): return "T1 placeholder (no experiment connected)"
+#     def run_odmr(): return "ODMR placeholder (no experiment connected)"
+#     def run_podmr(): return "Pulsed ODMR placeholder (no experiment connected)"
+#     def run_ramsey(): return "no"
+#     def run_t2(): return "no"
 
 
 class EmitProxy(QObject):
@@ -150,16 +150,17 @@ class T1Form(QWidget):
     def __init__(self):
         super().__init__()
         f = QFormLayout(self)
-        self.tref_ms = QDoubleSpinBox(); self.tref_ms.setRange(0.2, 100.0); self.tref_ms.setValue(4.0); self.tref_ms.setSuffix(" ms")
-        self.init_us = QDoubleSpinBox(); self.init_us.setRange(0.1, 5000.0); self.init_us.setValue(10.0); self.init_us.setSuffix(" µs")
-        self.second_us = QDoubleSpinBox(); self.second_us.setRange(0.1, 5000.0); self.second_us.setValue(8.0); self.second_us.setSuffix(" µs")
-        self.read_us = QDoubleSpinBox(); self.read_us.setRange(0.1, 5000.0); self.read_us.setValue(5.0); self.read_us.setSuffix(" µs")
-        self.max_tau_us = QDoubleSpinBox(); self.max_tau_us.setRange(10.0, 1e6); self.max_tau_us.setValue(1000.0); self.max_tau_us.setSuffix(" µs")
+        self.tref_ms = QDoubleSpinBox(); self.tref_ms.setRange(0.2, 100.0); self.tref_ms.setValue(20.0); self.tref_ms.setSuffix(" ms")
+        self.init_us = QDoubleSpinBox(); self.init_us.setRange(0.1, 5000.0); self.init_us.setValue(20.0); self.init_us.setSuffix(" µs")
+        self.second_us = QDoubleSpinBox(); self.second_us.setRange(0.1, 5000.0); self.second_us.setValue(20.0); self.second_us.setSuffix(" µs")
+        self.read_us = QDoubleSpinBox(); self.read_us.setRange(0.1, 5000.0); self.read_us.setValue(20.0); self.read_us.setSuffix(" µs")
+        self.max_tau_us = QDoubleSpinBox(); self.max_tau_us.setRange(10.0, 1e6); self.max_tau_us.setValue(4000.0); self.max_tau_us.setSuffix(" µs")
         self.points = QSpinBox(); self.points.setRange(3, 2000); self.points.setValue(15)
         for label, w in [("Tref", self.tref_ms),("Init", self.init_us),("Second", self.second_us),("Read", self.read_us),("Max τ", self.max_tau_us),("Points", self.points)]:
             f.addRow(QLabel(label+":"), w)
     def get_params(self):
         return dict(tref_ms=self.tref_ms.value(), init_us=self.init_us.value(), second_us=self.second_us.value(), read_us=self.read_us.value(), max_tau_us=self.max_tau_us.value(), points=int(self.points.value()))
+
 
 class ODMRForm(QWidget):
     def __init__(self):
